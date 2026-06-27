@@ -1,28 +1,51 @@
 import axios from 'axios';
+
 import {
   transformCountriesData,
-  transformCountryData,
+  // transformCountryData,
 } from '../helpers/transformCountries';
 
-axios.defaults.baseURL = 'https://restcountries.com/v3.1';
+const API_KEY = import.meta.env.VITE_API_KEY;
+const client = axios.create({
+  baseURL: 'https://api.restcountries.com/countries/v5',
+  headers: {
+    Authorization: `Bearer ${API_KEY}`,
+  },
+});
 
-export const getCountries = async () => {
-  const { data } = await axios.get('/region/europe');
-  const countries = transformCountriesData(data);
+// axios.defaults.baseURL = 'https://api.restcountries.com/countries/v5';
 
+export const fetchCountries = async region => {
+  const { data } = await client.get('', {
+    params: {
+      response_fields:
+        'names.common,flag,region,capitals,population,languages,links,uuid',
+      region: region || 'Europe',
+      limit: 100,
+    },
+  });
+  const countries = transformCountriesData(data.data.objects);
   return countries;
 };
 
-export const fetchCountry = async id => {
-  const { data } = await axios.get(`/name/${id}`);
-  const country = transformCountryData(data);
+export const fetchCountry = async name => {
+  const { data } = await client.get(`/names.common/${name}`, {
+    params: {
+      response_fields:
+        'names.common,flag,region,capitals,population,languages,links,uuid',
+      region: 'Europe',
+      limit: 1,
+    },
+  });
+  if (
+    !data ||
+    !data.data ||
+    !data.data.objects ||
+    data.data.objects.length === 0
+  ) {
+    throw new Error(`Country with name "${name}" not found.`);
+  }
+  const countries = transformCountriesData(data.data.objects);
 
-  return country[0];
-};
-
-export const fetchByRegion = async region => {
-  const { data } = await axios.get(`/region/${region}`);
-  const countries = transformCountriesData(data);
-
-  return countries;
+  return countries[0];
 };

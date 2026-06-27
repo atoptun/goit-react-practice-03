@@ -1,5 +1,6 @@
-import styles from './Heading.module.css';
 import clsx from 'clsx';
+
+import styles from './Heading.module.css';
 
 const Heading = ({ title, top, bottom, tag: Tag = 'h2' }) => {
   return (
